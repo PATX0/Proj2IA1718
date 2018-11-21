@@ -12,7 +12,7 @@ class Node():
 		# self.parents =
 		# self.prob =
         pass
-		
+
     def computeProb(self, evid):
         pass
 
