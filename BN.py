@@ -27,9 +27,9 @@ class Node():
 				return [self.prob[1]]
 
 		else: #caso com mais de 1 parent
-			for i in range(0, len(self.parents)):
-				for j in range(0, len(self.parents)):
-					if evid[self.parents[i]] == 0 and evid[self.parents[j]] == 0: # False, False
+			for i in range(0, len(self.parents)): #para cada parent
+				for j in [0, 1]: # 2 probs dentro de cada parent
+					if evid[self.parents[i]] == 0 and evid[self.parents[i+1]] == 0: # False, False
 						print('0		0\n')
 						return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
 							self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
