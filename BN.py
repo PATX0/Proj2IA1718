@@ -16,6 +16,7 @@ class Node():
 	def __init__(self, prob, parents = []): #prob = [pFalse, pTrue]
 		self.parents = parents
 		self.prob = prob
+		self.evid = 1
 
 
 	def computeProb(self, evid): #evid = evidencia |info atual sobre cada uma das variaveis(0:false 1:true)
@@ -29,23 +30,10 @@ class Node():
 			if evid[self.parents[0]] == 1:
 				return [self.prob[1]]
 
-		else: #caso com mais de 1 parent
-			for i in range(0, len(self.parents)): #para cada parent
-				for j in [0, 1]: # 2 probs dentro de cada parent
-					if evid[self.parents[i]] == 0 and evid[self.parents[i+1]] == 0: # False, False
-						return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
-							self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
-					if evid[self.parents[i]] == 0 and evid[self.parents[j]] == 1: # False, True !nao funciona este!
-						return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
-							self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
-					if evid[self.parents[i]] == 1 and evid[self.parents[j]] == 0: # True, False
-						return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
-							self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
-					if evid[self.parents[0]] == 1 and evid[self.parents[1]] == 1: # True, True
-						return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
-							self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
-
-
+		else: #caso com mais de 1 parent , evid = (x,x,x,x,x) !!!!FORCED!!!! ---> caso com +2 pais ?????
+			a = evid[self.parents[0]] # evid do no do 1 pai
+			b = evid[self.parents[1]]
+			return [1-self.prob[a][b], self.prob[a][b]]
 
 class BN():
 	def __init__(self, gra, prob): #prob = lista de nodes
@@ -54,43 +42,95 @@ class BN():
 
 	def computePostProb(self, evid):
 		pass
-		return 0
+		return 0 #P(X|e) | X  = var a posteriori , e = evid
 
-	def computeJointProb(self, evid):
-		jp = 1
-		p = Node([0], [])
+	def computeJointProb(self, evid):	#ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
+		jp = 1							#prob do joao e da maria ligarem sabendo que
+		ni = 0							#o alarme tocou devido a um burglary e um earthquake
 		for node in self.prob:
+			node.evid = evid[ni]
 			p = node.computeProb(evid)
-			jp = jp * float((1-p[0]))
+			print(p)
+			if len(p)>1:
+				if node.evid == 1:
+					print('11111')
+					jp = jp * float((1-p[0]))
+				elif node.evid == 0:
+					print('00000')
+					jp = jp * float(p[0])
+			else: #so tem um parent , so tem [prob = true]
+				jp = jp * float(p[0])
+
+			ni = ni+1
+
 		return jp
 
 
-		# else: #caso com mais de 1 parent
-		# 	for i in range(0, len(self.parents)):
-		# 		for j in range(0, len(self.parents)):
-		# 			if evid[self.parents[i]] == 0 and evid[self.parents[j]] == 0: # False, False
-		# 				pass
-		# 			if evid[self.parents[i]] == 0 and evid[self.parents[j]] == 1: # False, True
-		# 				pass
-		# 			if evid[self.parents[i]] == 1 and evid[self.parents[j]] == 0: # True, False
-		# 				pass
-		# 			if evid[self.parents[0]] == 1 and evid[self.parents[1]] == 1: # True, True
-		# 				pass
-# gra = [[],[],[0,1],[2],[2]]
-# ev = (1,1,1,1,1)
-#
-# p1 = Node( np.array([.001]), gra[0] )                   # burglary
-# print( "p1 false %.4e p1 true %.4e" % (p1.computeProb(ev)[0] , p1.computeProb(ev)[1]))
-#
-# p2 = Node( np.array([.002]), gra[1] )                   # earthquake
-#
-# p3 = Node( np.array([[.001,.29],[.94,.95]]), gra[2] )   # alarm
-# print( "p1 = 1, p2 = 1, p3 false %.4e p3 true %.4e" % (p3.computeProb(ev)[0] , p3.computeProb(ev)[1]))
-#
-# p4 = Node( np.array([.05,.9]), gra[3] )                 # johncalls
-#
-# p5 = Node( np.array([.01,.7]), gra[4] )                 # marycalls
-# prob = [p1,p2,p3,p4,p5]
-#
-# gra = [[],[],[0,1],[2],[2]]
-# bn = BN(gra, prob)
+
+
+def sumProbs(): #test function
+	gra = [[],[],[0,1],[2],[2]]
+	p1 = Node(np.array([.001]), gra[0])
+	p2 = Node(np.array([.002]), gra[1]) # earthquake
+	p3 = Node(np.array([[.001,.29],[.94,.95]]), gra[2])
+	p4 = Node(np.array([.05,.9]), gra[3]) # johncalls
+	p5 = Node(np.array([.01,.7]), gra[4])
+	prob = [p1,p2,p3,p4,p5] # marycalls
+	gra = [[],[],[0,1],[2],[2]]
+	bn = BN(gra, prob)
+	jp = []
+	for e1 in [0,1]:
+		for e2 in [0,1]:
+			for e3 in [0,1]:
+				for e4 in [0,1]:
+					for e5 in [0,1]:
+						jp.append(bn.computeJointProb((e1, e2, e3, e4, e5)))
+	print(sum(jp))
+
+
+def jProb(): #test function computeJointProb
+	gra = [[],[],[0,1],[2],[2]]
+	p1 = Node(np.array([.001]), gra[0])
+	p2 = Node(np.array([.002]), gra[1]) # earthquake
+	p3 = Node(np.array([[.001,.29],[.94,.95]]), gra[2])
+	p4 = Node(np.array([.05,.9]), gra[3]) # johncalls
+	p5 = Node(np.array([.01,.7]), gra[4])
+	prob = [p1,p2,p3,p4,p5] # marycalls
+	gra = [[],[],[0,1],[2],[2]]
+	bn = BN(gra, prob)
+	jp = []
+	x3 = bn.computeJointProb((1,1,1,1,1))
+	x2 = bn.computeJointProb((1,0,1,1,1))
+	x1 = bn.computeJointProb((0,1,1,1,1))
+	x = bn.computeJointProb((0,0,1,1,1))
+	y3 = bn.computeJointProb((1,1,0,1,1))
+	y2 = bn.computeJointProb((1,0,0,1,1))
+	y1 = bn.computeJointProb((0,1,0,1,1))
+	y = bn.computeJointProb((0,0,0,1,1))
+	print(x)
+	print(x1)
+	print(x2)
+	print(x3)
+	print(y)
+	print(y1)
+	print(y2)
+	print(y3)
+			#
+			# else: #caso com mais de 1 parent
+			# 	for i in range(0, len(self.parents)): #para cada parent
+			# 		for j in [0, 1]: # 2 probs dentro de cada parent
+			# 			if evid[self.parents[i]] == 0 and evid[self.parents[i+1]] == 0: # False, False
+			# 				return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
+			# 					self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
+			# 			if evid[self.parents[i]] == 0 and evid[self.parents[j]] == 1: # False, True
+			# 				return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
+			# 					self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
+			# 			if evid[self.parents[i]] == 1 and evid[self.parents[j]] == 0: # True, False
+			# 				return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
+			# 					self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
+			# 			if evid[self.parents[0]] == 1 and evid[self.parents[1]] == 1: # True, True
+			# 				return [1-self.prob[evid[self.parents[i]]][evid[self.parents[j]]],
+			# 					self.prob[evid[self.parents[i]]][evid[self.parents[j]]]]
+			# aux = []
+			# l = len(self.parents)
+			# for i in range(0, l): #para cada parent
