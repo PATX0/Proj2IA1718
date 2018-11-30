@@ -44,19 +44,19 @@ class BN():
 		pass
 		return 0 #P(X|e) | X  = var a posteriori , e = evid
 
-	def computeJointProb(self, evid):	#ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
-		jp = 1							#prob do joao e da maria ligarem sabendo que
-		ni = 0							#o alarme tocou devido a um burglary e um earthquake
+	def computeJointProb(self, evid):
+	""" ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
+		prob do joao e da maria ligarem sabendo que o alarme tocou devido a um burglary e um earthquake"""
+		jp = 1
+		ni = 0
 		for node in self.prob:
-			node.evid = evid[ni]
+			node.evid = evid[ni] #atribui evid a cada no' respectivo
 			p = node.computeProb(evid)
 			print(p)
-			if len(p)>1:
-				if node.evid == 1:
-					print('11111')
-					jp = jp * float((1-p[0]))
-				elif node.evid == 0:
-					print('00000')
+			if len(p)>1: #caso onde nao tem parents ou tem +1 parent
+				if node.evid == 1:#case true queremos p[1 ]= prob de no ser true
+					jp = jp * float(p[1])
+				elif node.evid == 0:#case false queremos p[0 ]= prob de no ser false
 					jp = jp * float(p[0])
 			else: #so tem um parent , so tem [prob = true]
 				jp = jp * float(p[0])
