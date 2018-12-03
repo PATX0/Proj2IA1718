@@ -41,12 +41,23 @@ class BN():
 		self.prob = prob
 
 	def computePostProb(self, evid):
-		pass
+		pp = 0
+		aux = []
+		evidNode(self.prob, evid)
+		for node in self.prob:
+			if node.evid == 0:
+				pass
+			elif node.evid == 1:
+				pass
+			elif node.evid == []:
+				pass
+			elif node.evid == -1:
+				pass
 		return 0 #P(X|e) | X  = var a posteriori , e = evid
 
 	def computeJointProb(self, evid):
 	""" ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
-		prob do joao e da maria ligarem sabendo que o alarme tocou devido a um burglary e um earthquake"""
+	prob do joao e da maria ligarem sabendo que o alarme tocou devido a um burglary e um earthquake"""
 		jp = 1
 		ni = 0
 		for node in self.prob:
@@ -65,7 +76,12 @@ class BN():
 
 		return jp
 
-
+def evidNode(lst, ev):
+	ni=0
+	for node in lst:
+		node.evid = ev[ni]
+		ni = ni + 1
+		print(node.evid)
 
 
 def sumProbs(): #test function
