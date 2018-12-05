@@ -16,7 +16,7 @@ class Node():
 	def __init__(self, prob, parents = []): #prob = [pFalse, pTrue]
 		self.parents = parents
 		self.prob = prob
-		self.evid = 1
+		self.evid = 0
 
 
 	def computeProb(self, evid): #evid = evidencia |info atual sobre cada uma das variaveis(0:false 1:true)

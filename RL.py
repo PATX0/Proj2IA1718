@@ -43,13 +43,13 @@ class finiteMDP:
 
     def VI(self):
         #nao alterar
-        nQ = np.zeros((self.nS,self.nA))
+        auxQ = np.zeros((self.nS,self.nA))
         while True:
             self.V = np.max(self.Q,axis=1)
             for a in range(0,self.nA):
-                nQ[:,a] = self.R[:,a] + self.gamma * np.dot(self.P[:,a,:],self.V)
-            err = np.linalg.norm(self.Q-nQ)
-            self.Q = np.copy(nQ)
+                auxQ[:,a] = self.R[:,a] + self.gamma * np.dot(self.P[:,a,:],self.V)
+            err = np.linalg.norm(self.Q-auxQ)
+            self.Q = np.copy(auxQ)
             if err<1e-7:
                 break
 
@@ -62,18 +62,17 @@ class finiteMDP:
 
 
     def traces2Q(self, trace):
-
         self.Q = np.zeros((self.nS,self.nA))
-        nQ = np.zeros((self.nS,self.nA))
+        auxQ = np.zeros((self.nS,self.nA))
         i = 0
         while True:
             for st in trace:
                 #[x, a, y, r]
-                nQ[int(st[0]),int(st[1])] = nQ[int(st[0]), int(st[1])] + 0.01 *
-				(st[3] + self.gamma * max(nQ[int(st[2]),:]) - nQ[int(st[0]), int(st[1])])
+                auxQ[int(st[0]),int(st[1])] = auxQ[int(st[0]), int(st[1])] + 0.01 *
+				(st[3] + self.gamma * max(auxQ[int(st[2]),:]) - auxQ[int(st[0]), int(st[1])])
             i = i + 1
-            e = np.linalg.norm(self.Q - nQ)
-            self.Q = np.copy(nQ)
+            e = np.linalg.norm(self.Q - auxQ)
+            self.Q = np.copy(auxQ)
             if e < 1e-2:
 				break
 		return self.Q
