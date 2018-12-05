@@ -42,28 +42,33 @@ class BN():
 
 	def computePostProb(self, evid):
 		pp = 0
-		aux = []
+		jp = 0
+		ppRet = 0
 		evidNode(self.prob, evid)
 		for node in self.prob:
+			p = node.computeProb(evid)
+			# print(p)
+			# print(p[0])
+			# print(p[1])
 			if node.evid == 0:
-				pass
+				pp = pp * p[0]
 			elif node.evid == 1:
-				pass
+				pp = pp * p[1]
 			elif node.evid == []:
-				pass
+				pp = pp * (p[0] + p[1])
 			elif node.evid == -1:
 				pass
-		return 0 #P(X|e) | X  = var a posteriori , e = evid
+		return pp #P(X|e) | X  = var a posteriori , e = evid
 
 	def computeJointProb(self, evid):
-	""" ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
+		""" ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
 	prob do joao e da maria ligarem sabendo que o alarme tocou devido a um burglary e um earthquake"""
 		jp = 1
 		ni = 0
+		evidNode(self.prob, evid)
 		for node in self.prob:
-			node.evid = evid[ni] #atribui evid a cada no' respectivo
 			p = node.computeProb(evid)
-			print(p)
+			#print(p)
 			if len(p)>1: #caso onde nao tem parents ou tem +1 parent
 				if node.evid == 1:#case true queremos p[1 ]= prob de no ser true
 					jp = jp * float(p[1])
@@ -72,16 +77,15 @@ class BN():
 			else: #so tem um parent , so tem [prob = true]
 				jp = jp * float(p[0])
 
-			ni = ni+1
 
 		return jp
 
-def evidNode(lst, ev):
+def evidNode(lst, ev): #atribui evid a cada no' respectivo
 	ni=0
 	for node in lst:
 		node.evid = ev[ni]
 		ni = ni + 1
-		print(node.evid)
+
 
 
 def sumProbs(): #test function
@@ -104,6 +108,62 @@ def sumProbs(): #test function
 	print(sum(jp))
 
 
+def jProb2():
+	gra2 = [[],[0],[0],[1,2]]
+	ev= (1,1,1,1)
+
+	pp1 = Node( np.array([.5]), gra2[0] )# cloudy
+	print( "pp1 false %.4e pp1 true %.4e" % (pp1.computeProb(ev)[0] , pp1.computeProb(ev)[1]))
+
+	pp2 = Node( np.array([.5,.1]), gra2[1] )# sprinkler
+
+	pp3 = Node( np.array([.2,.8]), gra2[2] )# rain
+
+	pp4 = Node( np.array([[.0,.9],[.9,.99]]), gra2[3] )# wetgrass
+	print( "pp2 = 1, pp3 = 1, pp4 false %.4e pp4 true %.4e" % (pp4.computeProb(ev)[0] , pp4.computeProb(ev)[1]))
+
+	prob2 = [pp1,pp2,pp3,pp4]
+
+	bn2 = BN(gra2, prob2)
+
+	jp = []
+	for e1 in [0,1]:
+		for e2 in [0,1]:
+			for e3 in [0,1]:
+				for e4 in [0,1]:
+					jp.append(bn2.computeJointProb((e1, e2, e3, e4)))
+
+	print("sum joint %.3f (1)" % sum(jp))
+
+
+	### Tests to joint Prob
+	ev = (0,0,0,0)
+	print( "joint %.4g (0.2)" % bn2.computeJointProb(ev) )
+
+	ev = (1,1,1,1)
+	print( "joint %.4g (0.0396)" % bn2.computeJointProb(ev) )
+
+
+	# ### Tests to post Prob
+	# # P(e1|e4=1)
+	# ev = (-1,[],[],1)
+	# print("ev : ")
+	# print(ev)
+	# print( "post : %.4g (0.5758)" % bn.computePostProb(ev)  )
+	#
+	# # P(e4|e1=1)
+	# ev = (1,[],[],-1)
+	# print("ev : ")
+	# print(ev)
+	# print( "post : %.4g (0.7452)" % bn.computePostProb(ev)  )
+	#
+	# # P(e1|e2=0,e3=0)
+	# ev = (-1,0,0,[])
+	# print("ev : ")
+	# print(ev)
+	# print( "post : %.4g (0.3103)" % bn.computePostProb(ev)  )
+
+
 def jProb(): #test function computeJointProb
 	gra = [[],[],[0,1],[2],[2]]
 	p1 = Node(np.array([.001]), gra[0])
@@ -114,23 +174,25 @@ def jProb(): #test function computeJointProb
 	prob = [p1,p2,p3,p4,p5] # marycalls
 	gra = [[],[],[0,1],[2],[2]]
 	bn = BN(gra, prob)
-	jp = []
-	x3 = bn.computeJointProb((1,1,1,1,1))
-	x2 = bn.computeJointProb((1,0,1,1,1))
-	x1 = bn.computeJointProb((0,1,1,1,1))
-	x = bn.computeJointProb((0,0,1,1,1))
-	y3 = bn.computeJointProb((1,1,0,1,1))
-	y2 = bn.computeJointProb((1,0,0,1,1))
-	y1 = bn.computeJointProb((0,1,0,1,1))
-	y = bn.computeJointProb((0,0,0,1,1))
-	print(x)
-	print(x1)
-	print(x2)
-	print(x3)
-	print(y)
-	print(y1)
-	print(y2)
-	print(y3)
+	ev = (-1,[],[],1,1)
+	print( "post : %.4g (0.2842)" % bn.computePostProb(ev))
+	print(float(bn.computePostProb(ev)) * float(bn.computeJointProb(ev)))
+	# x3 = bn.computeJointProb((1,1,1,1,1))
+	# x2 = bn.computeJointProb((1,0,1,1,1))
+	# x1 = bn.computeJointProb((0,1,1,1,1))
+	# x = bn.computeJointProb((0,0,1,1,1))
+	# y3 = bn.computeJointProb((1,1,0,1,1))
+	# y2 = bn.computeJointProb((1,0,0,1,1))
+	# y1 = bn.computeJointProb((0,1,0,1,1))
+	# y = bn.computeJointProb((0,0,0,1,1))
+	# print(x)
+	# print(x1)
+	# print(x2)
+	# print(x3)
+	# print(y)
+	# print(y1)
+	# print(y2)
+	# print(y3)
 			#
 			# else: #caso com mais de 1 parent
 			# 	for i in range(0, len(self.parents)): #para cada parent
