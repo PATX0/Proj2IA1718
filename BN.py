@@ -21,6 +21,7 @@ class Node():
 
 	def computeProb(self, evid): #evid = evidencia |info atual sobre cada uma das variaveis(0:false 1:true)
 		"""precisa da evid dos parents e devolve [prob_node = false, prob_node = true]"""
+		p = 0
 		if self.parents == []: #se nao tem parents
 			return [1-self.prob[0], self.prob[0]]
 
@@ -31,10 +32,16 @@ class Node():
 				return [self.prob[1]]
 
 		else: #caso com mais de 1 parent , evid = (x,x,x,x,x) !!!!FORCED!!!! ---> caso com +2 pais ?????
-			a = evid[self.parents[0]] # evid do no do 1 pai
-			b = evid[self.parents[1]]
-			return [1-self.prob[a][b], self.prob[a][b]]
+			for i in range(0, len(self.parents)):
+				pai = self.parents[i]
+				e = evid[pai]
+				if e == 0:
+					p = self.prob[e][0]
+				elif e == 1:
+					p = self.prob[e][1]
 
+				#p = self.prob[pai][e]
+			return [(1-p), p]
 class BN():
 	def __init__(self, gra, prob): #prob = lista de nodes
 		self.gra = gra
@@ -116,33 +123,33 @@ def jProb2():
 	print( "pp1 false %.4e pp1 true %.4e" % (pp1.computeProb(ev)[0] , pp1.computeProb(ev)[1]))
 
 	pp2 = Node( np.array([.5,.1]), gra2[1] )# sprinkler
-
+	print(float(pp2.computeProb(ev)[0]))
 	pp3 = Node( np.array([.2,.8]), gra2[2] )# rain
 
 	pp4 = Node( np.array([[.0,.9],[.9,.99]]), gra2[3] )# wetgrass
 	print( "pp2 = 1, pp3 = 1, pp4 false %.4e pp4 true %.4e" % (pp4.computeProb(ev)[0] , pp4.computeProb(ev)[1]))
 
-	prob2 = [pp1,pp2,pp3,pp4]
-
-	bn2 = BN(gra2, prob2)
-
-	jp = []
-	for e1 in [0,1]:
-		for e2 in [0,1]:
-			for e3 in [0,1]:
-				for e4 in [0,1]:
-					jp.append(bn2.computeJointProb((e1, e2, e3, e4)))
-
-	print("sum joint %.3f (1)" % sum(jp))
-
-
-	### Tests to joint Prob
-	ev = (0,0,0,0)
-	print( "joint %.4g (0.2)" % bn2.computeJointProb(ev) )
-
-	ev = (1,1,1,1)
-	print( "joint %.4g (0.0396)" % bn2.computeJointProb(ev) )
-
+	# prob2 = [pp1,pp2,pp3,pp4]
+	#
+	# bn2 = BN(gra2, prob2)
+	#
+	# jp = []
+	# for e1 in [0,1]:
+	# 	for e2 in [0,1]:
+	# 		for e3 in [0,1]:
+	# 			for e4 in [0,1]:
+	# 				jp.append(bn2.computeJointProb((e1, e2, e3, e4)))
+	#
+	# print("sum joint %.3f (1)" % sum(jp))
+	#
+	#
+	# ### Tests to joint Prob
+	# ev = (0,0,0,0)
+	# print( "joint %.4g (0.2)" % bn2.computeJointProb(ev) )
+	#
+	# ev = (1,1,1,1)
+	# print( "joint %.4g (0.0396)" % bn2.computeJointProb(ev) )
+	#
 
 	# ### Tests to post Prob
 	# # P(e1|e4=1)
@@ -193,6 +200,7 @@ def jProb(): #test function computeJointProb
 	# print(y1)
 	# print(y2)
 	# print(y3)
+
 			#
 			# else: #caso com mais de 1 parent
 			# 	for i in range(0, len(self.parents)): #para cada parent
@@ -212,3 +220,9 @@ def jProb(): #test function computeJointProb
 			# aux = []
 			# l = len(self.parents)
 			# for i in range(0, l): #para cada parent
+
+
+# 	else: #caso com mais de 1 parent , evid = (x,x,x,x,x) !!!!FORCED!!!! ---> caso com +2 pais ?????
+# 			a = evid[self.parents[0]] # evid do no do 1 pai
+# 			b = evid[self.parents[1]]
+# return [1-self.prob[a][b], self.prob[a][b]]
