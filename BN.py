@@ -82,7 +82,10 @@ class BN():
 				elif node.evid == 0:#case false queremos p[0 ]= prob de no ser false
 					jp = jp * float(p[0])
 			else: #so tem um parent , so tem [prob = true]
-				jp = jp * float(p[0])
+				if node.evid == 1:#case true queremos p[1 ]= prob de no ser true
+					jp = jp * float(p[0])
+				elif node.evid == 0:#case false queremos p[0 ]= prob de no ser false
+					jp = jp * float(1-p[0])
 
 
 		return jp
@@ -129,9 +132,9 @@ def jProb2():
 	pp4 = Node( np.array([[.0,.9],[.9,.99]]), gra2[3] )# wetgrass
 	print( "pp2 = 1, pp3 = 1, pp4 false %.4e pp4 true %.4e" % (pp4.computeProb(ev)[0] , pp4.computeProb(ev)[1]))
 
-	# prob2 = [pp1,pp2,pp3,pp4]
+	prob2 = [pp1,pp2,pp3,pp4]
 	#
-	# bn2 = BN(gra2, prob2)
+	bn2 = BN(gra2, prob2)
 	#
 	# jp = []
 	# for e1 in [0,1]:
@@ -143,12 +146,16 @@ def jProb2():
 	# print("sum joint %.3f (1)" % sum(jp))
 	#
 	#
-	# ### Tests to joint Prob
-	# ev = (0,0,0,0)
-	# print( "joint %.4g (0.2)" % bn2.computeJointProb(ev) )
-	#
-	# ev = (1,1,1,1)
-	# print( "joint %.4g (0.0396)" % bn2.computeJointProb(ev) )
+	 ### Tests to joint Prob
+	ev = (0,0,0,0)
+	print(pp1.prob)
+	print(pp2.prob)
+	print(pp3.prob)
+	print(pp4.prob)
+	print( "joint %.4g (0.2)" % bn2.computeJointProb(ev) )
+
+	ev = (1,1,1,1)
+	print( "joint %.4g (0.0396)" % bn2.computeJointProb(ev) )
 	#
 
 	# ### Tests to post Prob
