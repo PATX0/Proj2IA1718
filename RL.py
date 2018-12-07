@@ -70,15 +70,17 @@ class finiteMDP:
                 #[x, a, y, r]
                 auxQ[int(st[0]),int(st[1])] = auxQ[int(st[0]), int(st[1])] + 0.01 *
 				(st[3] + self.gamma * max(auxQ[int(st[2]),:]) - auxQ[int(st[0]), int(st[1])])
-            i = i + 1
-            e = np.linalg.norm(self.Q - auxQ)
+           	i = i + 1
+		e = np.linalg.norm(self.Q - auxQ)
             self.Q = np.copy(auxQ)
             if e < 1e-2:
-				break
+		break
 		return self.Q
 
     def policy(self, x, poltype = 'exploration', par = []):
-        # implementar esta funcao
+       """retornar o indice de uma acao,
+       sendo que o exploration escolhe se um indice random,
+       e o exploitation a acao que tem melhor valor Q desse estado"""
 
         if poltype == 'exploitation':
             pass
