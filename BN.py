@@ -8,7 +8,7 @@ Created on Mon Oct 15 15:51:49 2018
 """
 import sys
 import numpy as np
-
+import itertools as it
 
 # 		  B	  E     A	  J	   M
 #gra = [ [], [], [0,1], [2], [2] ]
@@ -47,44 +47,37 @@ class BN():
 		self.gra = gra
 		self.prob = prob
 
-	def computePostProb(self, evid):
+	def computePostProb(self, evid): #(-1, [], [], 1, 1)
+		"""P(X | e) = a | P(X, e) = a * SOMATORIO(P(X, e, y))
+	X = var a-posteriori y = vars desconhecidas, e  = vars conhecidas
+	Soma de JointProbabilities(evid das desconhecidas 0 e 1)"""
 		pp = 0
 		jp = 0
 		ppRet = 0
-		evidNode(self.prob, evid)
-		for node in self.prob:
-			p = node.computeProb(evid)
-			# print(p)
-			# print(p[0])
-			# print(p[1])
-			if node.evid == 0:
-				pp = pp * p[0]
-			elif node.evid == 1:
-				pp = pp * p[1]
-			elif node.evid == []:
-				pp = pp * (p[0] + p[1])
-			elif node.evid == -1:
-				pass
-		return pp #P(X|e) | X  = var a posteriori , e = evid
+		lst_idx = processaEvid(evid)
+		lst_evs = possEvid(lst_idx, evid)
+		for evs in lst_evs:
+			jp = jp + self.computeJointProb(evs)
+
+		return jp #P(X|e) | X  = var a posteriori , e = evid
 
 	def computeJointProb(self, evid):
 		""" ex: P(j,m,a,b,e) = P(j|a)*P(m|a)*P(a|b,e)*P(b)*P(e)
 	prob do joao e da maria ligarem sabendo que o alarme tocou devido a um burglary e um earthquake"""
 		jp = 1
 		ni = 0
-		evidNode(self.prob, evid)
+		evidNode(self.prob, evid) #atribui evid aos nos
 		for node in self.prob:
 			p = node.computeProb(evid)
-			#print(p)
 			if len(p)>1: #caso onde nao tem parents ou tem +1 parent
 				if node.evid == 1:#case true queremos p[1 ]= prob de no ser true
 					jp = jp * float(p[1])
 				elif node.evid == 0:#case false queremos p[0 ]= prob de no ser false
 					jp = jp * float(p[0])
 			else: #so tem um parent , so tem [prob = true]
-				if node.evid == 1:#case true queremos p[1 ]= prob de no ser true
+				if node.evid == 1:
 					jp = jp * float(p[0])
-				elif node.evid == 0:#case false queremos p[0 ]= prob de no ser false
+				elif node.evid == 0:
 					jp = jp * float(1-p[0])
 
 
@@ -96,6 +89,51 @@ def evidNode(lst, ev): #atribui evid a cada no' respectivo
 		node.evid = ev[ni]
 		ni = ni + 1
 
+def processaEvid(evid): #retorna lista de indices das vars desconhecidas
+	lst = []
+	for i in range(0, len(evid)):
+		if evid[i] == []:
+			lst.append(i)
+	return lst
+
+def possEvid(lstEv, ev): #retorna lista de evs possiveis
+	lstPoss = []
+	newEv = [];	newEv1 = []; newEv2 = []; newEv3 = []
+	newEv4 = []; newEv5 = []; newEv6 = []; newEv7 = []
+	for i in range(0, len(ev)): #create list with evs to manipulate
+		if ev[i] == -1:
+			newEv.append(1); newEv1.append(1)
+			newEv2.append(1); newEv3.append(1)
+			newEv4.append(0); newEv5.append(0)
+			newEv6.append(0); newEv7.append(0)
+		else:
+			newEv.append(ev[i]); newEv1.append(ev[i])
+			newEv2.append(ev[i]); newEv3.append(ev[i])
+			newEv4.append(ev[i]); newEv5.append(ev[i])
+			newEv6.append(ev[i]); newEv7.append(ev[i])
+
+	#g = 0; h = 1; i = 0; j = 1; k = 0; l = 1
+	a = 0; b = 1; c = 0; d = 1; e = 0; f = 1
+
+	for idx in lstEv:
+		newEv[idx] = a; newEv4[idx] = a
+		newEv1[idx] = b; newEv5[idx] = b
+		newEv2[idx] = c; newEv6[idx] = c
+		newEv3[idx] = f; newEv7[idx] = f
+		c = d; f = e
+
+	if len(lstEv)==1:
+		lstPoss.append(tuple(newEv)); lstPoss.append(tuple(newEv1))
+		lstPoss.append(tuple(newEv4)); lstPoss.append(tuple(newEv5))
+		return lstPoss
+
+	if len(lstEv) == 2:
+		lstPoss.append(tuple(newEv)); lstPoss.append(tuple(newEv1))
+		lstPoss.append(tuple(newEv2)); lstPoss.append(tuple(newEv3))
+		lstPoss.append(tuple(newEv4)); lstPoss.append(tuple(newEv5))
+		lstPoss.append(tuple(newEv6)); lstPoss.append(tuple(newEv7))
+		return lstPoss
+
 
 
 def sumProbs(): #test function
@@ -106,7 +144,6 @@ def sumProbs(): #test function
 	p4 = Node(np.array([.05,.9]), gra[3]) # johncalls
 	p5 = Node(np.array([.01,.7]), gra[4])
 	prob = [p1,p2,p3,p4,p5] # marycalls
-	gra = [[],[],[0,1],[2],[2]]
 	bn = BN(gra, prob)
 	jp = []
 	for e1 in [0,1]:
@@ -136,46 +173,42 @@ def jProb2():
 	#
 	bn2 = BN(gra2, prob2)
 	#
-	# jp = []
-	# for e1 in [0,1]:
-	# 	for e2 in [0,1]:
-	# 		for e3 in [0,1]:
-	# 			for e4 in [0,1]:
-	# 				jp.append(bn2.computeJointProb((e1, e2, e3, e4)))
-	#
-	# print("sum joint %.3f (1)" % sum(jp))
+	jp = []
+	for e1 in [0,1]:
+		for e2 in [0,1]:
+			for e3 in [0,1]:
+				for e4 in [0,1]:
+					jp.append(bn2.computeJointProb((e1, e2, e3, e4)))
+
+	print("sum joint %.3f (1)" % sum(jp))
 	#
 	#
 	 ### Tests to joint Prob
 	ev = (0,0,0,0)
-	print(pp1.prob)
-	print(pp2.prob)
-	print(pp3.prob)
-	print(pp4.prob)
 	print( "joint %.4g (0.2)" % bn2.computeJointProb(ev) )
 
 	ev = (1,1,1,1)
 	print( "joint %.4g (0.0396)" % bn2.computeJointProb(ev) )
 	#
 
-	# ### Tests to post Prob
-	# # P(e1|e4=1)
-	# ev = (-1,[],[],1)
-	# print("ev : ")
-	# print(ev)
-	# print( "post : %.4g (0.5758)" % bn.computePostProb(ev)  )
-	#
+	### Tests to post Prob
+	# P(e1|e4=1)
+	ev = (-1,[],[],1)
+	print("ev : ")
+	print(ev)
+	print( "post : %.4g (0.5758)" % bn2.computePostProb(ev)  )
+
 	# # P(e4|e1=1)
-	# ev = (1,[],[],-1)
-	# print("ev : ")
-	# print(ev)
-	# print( "post : %.4g (0.7452)" % bn.computePostProb(ev)  )
-	#
-	# # P(e1|e2=0,e3=0)
-	# ev = (-1,0,0,[])
-	# print("ev : ")
-	# print(ev)
-	# print( "post : %.4g (0.3103)" % bn.computePostProb(ev)  )
+	ev = (1,[],[],-1)
+	print("ev : ")
+	print(ev)
+	print( "post : %.4g (0.7452)" % bn2.computePostProb(ev)  )
+
+	 # P(e1|e2=0,e3=0)
+	ev = (-1,0,0,[])
+	print("ev : ")
+	print(ev)
+	print( "post : %.4g (0.3103)" % bn2.computePostProb(ev)  )
 
 
 def jProb(): #test function computeJointProb
@@ -188,25 +221,25 @@ def jProb(): #test function computeJointProb
 	prob = [p1,p2,p3,p4,p5] # marycalls
 	gra = [[],[],[0,1],[2],[2]]
 	bn = BN(gra, prob)
+
+	jp = []
+	for e1 in [0,1]:
+		for e2 in [0,1]:
+			for e3 in [0,1]:
+				for e4 in [0,1]:
+					for e5 in [0,1]:
+						jp.append(bn.computeJointProb((e1, e2, e3, e4, e5)))
+	print("sum joint %.3f (1)" % sum(jp))
+
 	ev = (-1,[],[],1,1)
+	print(ev)
 	print( "post : %.4g (0.2842)" % bn.computePostProb(ev))
-	print(float(bn.computePostProb(ev)) * float(bn.computeJointProb(ev)))
-	# x3 = bn.computeJointProb((1,1,1,1,1))
-	# x2 = bn.computeJointProb((1,0,1,1,1))
-	# x1 = bn.computeJointProb((0,1,1,1,1))
-	# x = bn.computeJointProb((0,0,1,1,1))
-	# y3 = bn.computeJointProb((1,1,0,1,1))
-	# y2 = bn.computeJointProb((1,0,0,1,1))
-	# y1 = bn.computeJointProb((0,1,0,1,1))
-	# y = bn.computeJointProb((0,0,0,1,1))
-	# print(x)
-	# print(x1)
-	# print(x2)
-	# print(x3)
-	# print(y)
-	# print(y1)
-	# print(y2)
-	# print(y3)
+	ev = ([],-1,[],1,1)
+	print(ev)
+	print( "post : %.3f (0.176)" % bn.computePostProb(ev))
+	ev = ([],0,1,-1,[])
+	print(ev)
+	print( "post : %.3f (0.900)" % bn.computePostProb(ev))
 
 			#
 			# else: #caso com mais de 1 parent
